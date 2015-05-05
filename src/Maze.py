@@ -343,7 +343,7 @@ class Maze:
 		
 		# recursive base case
 		if self.baseCheck():
-			return
+			return self.board
 
 		# generate path
 		self.fillPossibleDir()
