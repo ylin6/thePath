@@ -37,10 +37,10 @@ class Light():
 	
 	# Draw Light	
 	def drawCircle(self):
-		self.mask.fill((0,0,0,255))
+		self.mask.fill((0,0,0,250))
 		radius = 50
-		t = 200
-		delta = 3
+		t = 100
+		delta = 10
 		while radius > 25:
 			pygame.draw.circle(self.mask, (0,0,0,t), (self.x, self.y), radius)
 			t -= delta
@@ -146,6 +146,9 @@ class GameSpace:
 		# game walls
 		self.walls = []
 
+		# gameover variable
+		self.game_over = 0 
+
 	def main(self):
 		# Initiation
 		pygame.init()
@@ -156,6 +159,19 @@ class GameSpace:
 		self.screen = pygame.display.set_mode(self.size)
 		pygame.key.set_repeat(1, 100)
 		self.screen_rect = self.screen.get_rect()
+
+		self.exit_sprite = pygame.image.load("../images/exit.png")
+		self.exit_rect = self.exit_sprite.get_rect()
+	
+		self.gameover_sprite = pygame.image.load("../images/gameover.png")
+                self.gameover_rect = self.gameover_sprite.get_rect()
+	
+		self.bg = pygame.image.load("../images/background.png")
+		self.bg_rect = self.bg.get_rect()
+		#self.bg_rect = self.bg_rect.move(SCREEN_SIZE/2, SCREEN_SIZE/2)	
+		# Music 
+		pygame.mixer.music.load("../music/horror.wav")
+		pygame.mixer.music.play(-1, 0.0)
 		# maze display
 		r = 0
 		while r < self.maze.getSize():
@@ -166,6 +182,8 @@ class GameSpace:
 					height = rockWall.rect.size
 					rockWall.rect = rockWall.rect.move(height[0] * c, height[0] * r) 
 					self.walls.append(rockWall)
+				elif self.maze.getPos(r,c) == self.exit:
+					self.exit_rect = self.exit_rect.move(WALL_SIZE * c, WALL_SIZE * r)
 				c += 1
 			r += 1
 
@@ -176,26 +194,43 @@ class GameSpace:
 		while 1:
 			#frame rate
 			self.clock.tick(60)
-			
 			#handle user inputs
 			for event in pygame.event.get():
-				if event.type == KEYDOWN:
+				if event.type == KEYDOWN and self.game_over == 0:
 					self.player.move(event.key)
 				elif event.type == pygame.QUIT:
-					sys.exit()		
+					sys.exit()
+			
+		
 
 			#flush to screen and swap buffers
 			self.screen.fill(self.green)
+			self.screen.blit(self.bg, self.bg_rect)
 			for w in self.walls:
 				self.screen.blit(w.image, w.rect)
 
 				# check for wall collisions
 				if self.player.rect.colliderect(w.rect):
 					self.player.setLastPosition() # set to last non-collision position
-
-			self.player.light.drawCircle()
-			self.screen.blit(self.player.light.mask, (0,0))
+			
+			if self.player.rect.colliderect(self.exit_rect):
+				pygame.mixer.music.stop()
+				self.game_over = 1
+				print "You Win"
+				self.player.setLastPosition()
+				pygame.mixer.music.load("../music/win.wav")
+                		pygame.mixer.music.play(1, 0.0)
+				#sys.exit()
+			
+			self.screen.blit(self.exit_sprite, self.exit_rect)
 			self.screen.blit(self.player.image, self.player.rect)
+			if self.game_over == 0:
+                        	self.player.light.drawCircle()
+				self.screen.blit(self.player.light.mask, (0,0))
+			else:
+				self.screen.blit(self.gameover_sprite, self.gameover_rect)
+
+			
 			self.player.rect.clamp_ip(self.screen_rect)
 			pygame.display.flip()
 
