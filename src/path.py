@@ -5,10 +5,15 @@ import math
 import pygame
 from maze import Maze
 from pygame.locals import *
+from random import randint
 
-# Starting X and Y Variables
-START_X = 100
-START_Y = 100
+# GLOBAL VARIABLESi
+WALL_SIZE = 36
+SCALE = 1
+MAZE_SIZE = 25
+START_X = (MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE
+START_Y = (MAZE_SIZE - 1) * WALL_SIZE * SCALE
+SCREEN_SIZE = WALL_SIZE * MAZE_SIZE * SCALE
 
 # Flashlight class. Will Follow User Sprite.
 
@@ -26,7 +31,7 @@ class Light():
 		# Light Mask
 		self.light_radius = 50
 		self.light_mask = pygame.surface.Surface((self.light_radius, self.light_radius)).convert_alpha()
-
+		self.collide = 0
 		self.y = START_Y
 		self.x = START_X
 	
@@ -46,22 +51,26 @@ class Light():
 
 	def move(self, key):
 		if key == K_RIGHT:
-			self.x +=5
+			if (self.x < SCREEN_SIZE - 5):
+				self.x +=5
 			self.drawCircle()
 		elif key == K_LEFT:
-                        self.x -= 5
+			if (self.x > 0 + 5):
+				self.x -= 5
                         self.drawCircle()
 		elif key == K_UP:
-                        self.y -= 5
+			if (self.y > 0 + 5):
+				self.y -= 5
                         self.drawCircle()
 		elif key == K_DOWN:
-                        self.y += 5
+			if (self.y < SCREEN_SIZE - 5):
+				self.y += 5
                         self.drawCircle()	
 
 class Player(pygame.sprite.Sprite):
 	def __init__(self, gs = None):
 		pygame.sprite.Sprite.__init__(self)
-		
+		self.collide = 0	
 		self.img_list = ['../images/up.png', '../images/left.png', '../images/right.png', '../images/down.png'];
 		self.gs = gs
 		self.image = pygame.image.load(self.img_list[0])
@@ -71,26 +80,63 @@ class Player(pygame.sprite.Sprite):
 		self.orig_image = self.image
 		self.rect = self.rect.move(self.x, self.y)
 	def move(self, event):
-		if event == K_RIGHT:
+		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
 			self.rect = self.rect.move(5, 0)
-		elif event == K_LEFT:
+
+		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
                         self.rect = self.rect.move(-5, 0)
-		elif event == K_UP:
+
+		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
                         self.rect = self.rect.move(0, -5)
-		elif event == K_DOWN:
+
+		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
 			self.rect = self.rect.move(0, 5)
 		
 class GameSpace:
 	def __init__(self, mazesize=20):
+		# game characters
+		self.p1 = 'H'
+		self.p2 = 'G'
+		self.exit = 'E'
+
 		# game maze
 		self.maze = Maze(mazesize)
 		self.maze.generate()
-		self.maze.display()
 		
+		size = self.maze.getSize()
+
+		# set character start positions
+		self.maze.setPos(size-1, size/2-1, self.p1) 	# human
+		self.maze.setPos(0, size/2-1, self.p2)		# ghost
+
+		# set exit (try middle if path, otherwise on edge)
+		if self.maze.getPos(size/2-1, size/2-1) == self.maze.path:
+			self.maze.setPos(size/2-1, size/2-1, self.exit)
+		else:
+			side = randint(0,1)
+			i = 0
+			
+			if side == 0:
+				# set on left side
+				while i < size:
+					if self.maze.getPos(i, 0) == self.maze.path:
+						self.maze.setPos(i, 0, self.exit)
+						break
+					i += 1
+			else:
+				# set on right side
+				while i < size:
+                                        if self.maze.getPos(i, size-1) == self.maze.path:
+                                                self.maze.setPos(i, size-1, self.exit)
+                                                break
+					i += 1
+					
+		self.maze.display()
+
 		# game walls
 		self.walls = []
 
@@ -98,12 +144,12 @@ class GameSpace:
 		# Initiation
 		pygame.init()
 		pygame.display.set_caption("PATH")
-		self.size = self.width, self.height = 450, 450
+		self.size = self.width, self.height = SCREEN_SIZE, SCREEN_SIZE
 		self.green = 0, 255, 0
 		
 		self.screen = pygame.display.set_mode(self.size)
 		pygame.key.set_repeat(1, 100)
-
+		self.screen_rect = self.screen.get_rect()
 		# maze display
 		r = 0
 		while r < self.maze.getSize():
@@ -112,7 +158,7 @@ class GameSpace:
 				if self.maze.getPos(r, c) == self.maze.wall:
 					rockWall = Wall()
 					height = rockWall.rect.size
-					rockWall.rect = rockWall.rect.move(height[0] * r, height[0] * c)	
+					rockWall.rect = rockWall.rect.move(height[0] * c, height[0] * r)	
 					self.walls.append(rockWall)
 				c += 1
 			r += 1
@@ -139,13 +185,17 @@ class GameSpace:
 			self.screen.fill(self.green)
 			for w in self.walls:
 				self.screen.blit(w.image, w.rect)
+				if self.player.rect.colliderect(w.rect):
+					print "collision"
+
 			self.light.drawCircle()
 			self.screen.blit(self.light.mask, (0,0))
 			self.screen.blit(self.player.image, self.player.rect)
+			self.player.rect.clamp_ip(self.screen_rect)
 			pygame.display.flip()
 
 if __name__ == '__main__':
-	gs = GameSpace(25)
+	gs = GameSpace(MAZE_SIZE)
 	gs.main()
 
 		
