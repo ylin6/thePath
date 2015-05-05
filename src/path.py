@@ -10,7 +10,7 @@ from random import randint
 # GLOBAL VARIABLESi
 WALL_SIZE = 36
 SCALE = 1
-MAZE_SIZE = 25
+MAZE_SIZE = 20
 START_X = (MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE
 START_Y = (MAZE_SIZE - 1) * WALL_SIZE * SCALE
 SCREEN_SIZE = WALL_SIZE * MAZE_SIZE * SCALE
@@ -49,24 +49,6 @@ class Light():
 		pass
 		#print "tick"
 
-	def move(self, key):
-		if key == K_RIGHT:
-			if (self.x < SCREEN_SIZE - 5):
-				self.x +=5
-			self.drawCircle()
-		elif key == K_LEFT:
-			if (self.x > 0 + 5):
-				self.x -= 5
-                        self.drawCircle()
-		elif key == K_UP:
-			if (self.y > 0 + 5):
-				self.y -= 5
-                        self.drawCircle()
-		elif key == K_DOWN:
-			if (self.y < SCREEN_SIZE - 5):
-				self.y += 5
-                        self.drawCircle()	
-
 class Player(pygame.sprite.Sprite):
 	def __init__(self, gs = None):
 		pygame.sprite.Sprite.__init__(self)
@@ -80,6 +62,8 @@ class Player(pygame.sprite.Sprite):
 		self.rect = self.image.get_rect()
 		self.orig_image = self.image
 		self.rect = self.rect.move(self.x, self.y)
+		self.last_position = []
+		self.updateLastPosition()
 
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
@@ -90,21 +74,28 @@ class Player(pygame.sprite.Sprite):
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
-                        self.rect = self.rect.move(-5, 0)
+			self.rect = self.rect.move(-5, 0)
 			self.light.x = self.rect.centerx
-                        self.light.y = self.rect.centery
+			self.light.y = self.rect.centery
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
-                        self.rect = self.rect.move(0, -5)
+			self.rect = self.rect.move(0, -5)
 			self.light.x = self.rect.centerx
-                        self.light.y = self.rect.centery
+			self.light.y = self.rect.centery
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
 			self.rect = self.rect.move(0, 5)
 			self.light.x = self.rect.centerx
-                        self.light.y = self.rect.centery
+			self.light.y = self.rect.centery
+
+	def setLastPosition (self):
+		self.rect.centerx = self.last_position[0]
+		self.rect.centery = self.last_position[1]
+
+	def updateLastPosition(self):
+		self.last_position = [self.rect.centerx, self.rect.centery]
 		
 class GameSpace:
 	def __init__(self, mazesize=20):
@@ -120,7 +111,7 @@ class GameSpace:
 		size = self.maze.getSize()
 
 		# set character start positions
-		self.maze.setPos(size-1, size/2-1, self.p1) 	# human
+		self.maze.setPos(size-1, size/2-1, self.p1)	# human
 		self.maze.setPos(0, size/2-1, self.p2)		# ghost
 
 		# set exit (try middle if path, otherwise on edge)
@@ -140,11 +131,11 @@ class GameSpace:
 			else:
 				# set on right side
 				while i < size:
-                                        if self.maze.getPos(i, size-1) == self.maze.path:
-                                                self.maze.setPos(i, size-1, self.exit)
-                                                break
-					i += 1
-					
+					if self.maze.getPos(i, size-1) == self.maze.path:
+						self.maze.setPos(i, size-1, self.exit)
+						break
+				i += 1
+	
 		self.maze.display()
 
 		# game walls
@@ -168,7 +159,7 @@ class GameSpace:
 				if self.maze.getPos(r, c) == self.maze.wall:
 					rockWall = Wall()
 					height = rockWall.rect.size
-					rockWall.rect = rockWall.rect.move(height[0] * c, height[0] * r)	
+					rockWall.rect = rockWall.rect.move(height[0] * c, height[0] * r) 
 					self.walls.append(rockWall)
 				c += 1
 			r += 1
@@ -189,12 +180,13 @@ class GameSpace:
 					sys.exit()		
 
 			#flush to screen and swap buffers
-			self.light.tick()
 			self.screen.fill(self.green)
 			for w in self.walls:
 				self.screen.blit(w.image, w.rect)
 				if self.player.rect.colliderect(w.rect):
-					print "collision"
+					self.player.setLastPosition()
+				else:
+					self.player.updateLastPosition()				
 
 			self.player.light.drawCircle()
 			self.screen.blit(self.player.light.mask, (0,0))
@@ -205,5 +197,3 @@ class GameSpace:
 if __name__ == '__main__':
 	gs = GameSpace(MAZE_SIZE)
 	gs.main()
-
-		
