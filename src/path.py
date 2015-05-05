@@ -68,35 +68,40 @@ class Player(pygame.sprite.Sprite):
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
+			self.updateLastPosition()
 			self.rect = self.rect.move(5, 0)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
+			self.updateLastPosition()
 			self.rect = self.rect.move(-5, 0)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
+			self.updateLastPosition()
 			self.rect = self.rect.move(0, -5)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
+			self.updateLastPosition()
 			self.rect = self.rect.move(0, 5)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 	def setLastPosition (self):
+		print "called: " + str(self.last_position)
 		self.rect.centerx = self.last_position[0]
 		self.rect.centery = self.last_position[1]
 
 	def updateLastPosition(self):
 		self.last_position = [self.rect.centerx, self.rect.centery]
-		
+	
 class GameSpace:
 	def __init__(self, mazesize=20):
 		# game characters
@@ -183,10 +188,10 @@ class GameSpace:
 			self.screen.fill(self.green)
 			for w in self.walls:
 				self.screen.blit(w.image, w.rect)
+
+				# check for wall collisions
 				if self.player.rect.colliderect(w.rect):
-					self.player.setLastPosition()
-				else:
-					self.player.updateLastPosition()				
+					self.player.setLastPosition() # set to last non-collision position
 
 			self.player.light.drawCircle()
 			self.screen.blit(self.player.light.mask, (0,0))
