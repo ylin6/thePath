@@ -3,6 +3,7 @@ import sys
 import os
 import math
 import pygame
+from maze import Maze
 from pygame.locals import *
 
 # Starting X and Y Variables
@@ -11,12 +12,19 @@ START_Y = 100
 
 # Flashlight class. Will Follow User Sprite.
 
+class Wall(pygame.sprite.Sprite):
+	def __init__(self, gs = None):
+		pygame.sprite.Sprite.__init__(self)
+		self.gs = gs
+		self.image = pygame.image.load("../images/wall.png")
+		self.rect = self.image.get_rect()
+		self.orig_image = self.image
 class Light():
 	def __init__(self, size):
 		# Black Mask
 		self.mask = pygame.surface.Surface(size).convert_alpha()
 		# Light Mask
-		self.light_radius = 100
+		self.light_radius = 50
 		self.light_mask = pygame.surface.Surface((self.light_radius, self.light_radius)).convert_alpha()
 
 		self.y = START_Y
@@ -25,15 +33,17 @@ class Light():
 	# Draw Light	
 	def drawCircle(self):
 		self.mask.fill((0,0,0,255))
-		radius = 100
+		radius = 50
 		t = 200
 		delta = 3
-		while radius > 50:
+		while radius > 25:
 			pygame.draw.circle(self.mask, (0,0,0,t), (self.x, self.y), radius)
 			t -= delta
 			radius -= delta
 	def tick(self):
-		print "tick"
+		pass
+		#print "tick"
+
 	def move(self, key):
 		if key == K_RIGHT:
 			self.x +=5
@@ -52,11 +62,11 @@ class Player(pygame.sprite.Sprite):
 	def __init__(self, gs = None):
 		pygame.sprite.Sprite.__init__(self)
 		
-		self.img_list = ['images/up.png', 'images/left.png', 'images/right.png', 'images/down.png'];
+		self.img_list = ['../images/up.png', '../images/left.png', '../images/right.png', '../images/down.png'];
 		self.gs = gs
 		self.image = pygame.image.load(self.img_list[0])
-		self.x = START_X
-		self.y = START_Y
+		self.x = START_X - 10
+		self.y = START_Y - 10
 		self.rect = self.image.get_rect()
 		self.orig_image = self.image
 		self.rect = self.rect.move(self.x, self.y)
@@ -75,15 +85,37 @@ class Player(pygame.sprite.Sprite):
 			self.rect = self.rect.move(0, 5)
 		
 class GameSpace:
+	def __init__(self, mazesize=20):
+		# game maze
+		self.maze = Maze(mazesize)
+		self.maze.generate()
+		self.maze.display()
+		
+		# game walls
+		self.walls = []
+
 	def main(self):
 		# Initiation
 		pygame.init()
 		pygame.display.set_caption("PATH")
-		self.size = self.width, self.height = 900, 900
+		self.size = self.width, self.height = 450, 450
 		self.green = 0, 255, 0
 		
 		self.screen = pygame.display.set_mode(self.size)
 		pygame.key.set_repeat(1, 100)
+
+		# maze display
+		r = 0
+		while r < self.maze.getSize():
+			c = 0
+			while c < self.maze.getSize():
+				if self.maze.getPos(r, c) == self.maze.wall:
+					rockWall = Wall()
+					height = rockWall.rect.size
+					rockWall.rect = rockWall.rect.move(height[0] * r, height[0] * c)	
+					self.walls.append(rockWall)
+				c += 1
+			r += 1
 
 		# Pygame Objects
 		self.clock = pygame.time.Clock()
@@ -105,13 +137,15 @@ class GameSpace:
 			#flush to screen and swap buffers
 			self.light.tick()
 			self.screen.fill(self.green)
+			for w in self.walls:
+				self.screen.blit(w.image, w.rect)
 			self.light.drawCircle()
 			self.screen.blit(self.light.mask, (0,0))
 			self.screen.blit(self.player.image, self.player.rect)
 			pygame.display.flip()
 
 if __name__ == '__main__':
-	gs = GameSpace()
+	gs = GameSpace(25)
 	gs.main()
 
 		
