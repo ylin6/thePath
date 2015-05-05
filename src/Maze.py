@@ -37,6 +37,29 @@ class Maze:
 		self.ubwall = '$'		# represents unbreakable wall
 		return
 
+	# get board position
+	def getPos(self, r, c):
+		try:
+			return self.board[r][c]
+		except Exception as e:
+			print str(e)
+			return None
+
+	# set board position
+	def setPos(self, r, c, value):
+		try:
+			self.board[r][c] = value
+		except Exception as e:
+			print str(e)
+
+	# get maze size
+	def getSize(self):
+		return self.size
+
+	# return 2D board containing maze
+	def getBoard(self):
+		return self.board
+
 	# print board
 	def display(self):
 		if len(self.board) == self.size:
