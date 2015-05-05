@@ -70,31 +70,41 @@ class Light():
 class Player(pygame.sprite.Sprite):
 	def __init__(self, gs = None):
 		pygame.sprite.Sprite.__init__(self)
+		self.light = Light((SCREEN_SIZE, SCREEN_SIZE))
 		self.collide = 0	
 		self.img_list = ['../images/up.png', '../images/left.png', '../images/right.png', '../images/down.png'];
 		self.gs = gs
 		self.image = pygame.image.load(self.img_list[0])
-		self.x = START_X - 10
-		self.y = START_Y - 10
+		self.x = START_X
+		self.y = START_Y
 		self.rect = self.image.get_rect()
 		self.orig_image = self.image
 		self.rect = self.rect.move(self.x, self.y)
+
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
 			self.rect = self.rect.move(5, 0)
+			self.light.x = self.rect.centerx
+			self.light.y = self.rect.centery
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
                         self.rect = self.rect.move(-5, 0)
+			self.light.x = self.rect.centerx
+                        self.light.y = self.rect.centery
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
                         self.rect = self.rect.move(0, -5)
+			self.light.x = self.rect.centerx
+                        self.light.y = self.rect.centery
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
 			self.rect = self.rect.move(0, 5)
+			self.light.x = self.rect.centerx
+                        self.light.y = self.rect.centery
 		
 class GameSpace:
 	def __init__(self, mazesize=20):
@@ -165,7 +175,6 @@ class GameSpace:
 
 		# Pygame Objects
 		self.clock = pygame.time.Clock()
-		self.light = Light(self.size)
 		self.player = Player()
 		# Game Loop
 		while 1:
@@ -175,7 +184,6 @@ class GameSpace:
 			#handle user inputs
 			for event in pygame.event.get():
 				if event.type == KEYDOWN:
-					self.light.move(event.key)
 					self.player.move(event.key)
 				elif event.type == pygame.QUIT:
 					sys.exit()		
@@ -188,8 +196,8 @@ class GameSpace:
 				if self.player.rect.colliderect(w.rect):
 					print "collision"
 
-			self.light.drawCircle()
-			self.screen.blit(self.light.mask, (0,0))
+			self.player.light.drawCircle()
+			self.screen.blit(self.player.light.mask, (0,0))
 			self.screen.blit(self.player.image, self.player.rect)
 			self.player.rect.clamp_ip(self.screen_rect)
 			pygame.display.flip()
