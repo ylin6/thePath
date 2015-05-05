@@ -139,7 +139,7 @@ class GameSpace:
 					if self.maze.getPos(i, size-1) == self.maze.path:
 						self.maze.setPos(i, size-1, self.exit)
 						break
-				i += 1
+					i += 1
 	
 		self.maze.display()
 
