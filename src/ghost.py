@@ -15,6 +15,7 @@ from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 import cPickle as pickle
+from pmessage import PlayerMessage
 
 # GLOBAL VARIABLES
 WALL_SIZE = 36
@@ -47,7 +48,8 @@ class GhostConn(Protocol):
 			# turn flag off
 			MAZE_FLAG = 0
 		else:
-			pass
+			self.gs.opponent = [obj.xPos, obj.yPos, obj.image]
+			print self.gs.opponent
 
 class GhostFactory(ClientFactory):
 	def __init__(self, gs=None):
@@ -69,8 +71,8 @@ class Ghost(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self)
 		self.collide = 0	
-		self.img_list = ['../images/up.png', '../images/left.png', '../images/right.png', '../images/down.png'];
-		self.image = pygame.image.load(self.img_list[0])
+		self.img_list = ['../images/ghost_up.png', '../images/ghost_left.png', '../images/ghost_right.png', '../images/ghost_down.png'];
+		self.image = pygame.image.load(self.img_list[3])
 		self.x = START_X
 		self.y = START_Y
 		self.rect = self.image.get_rect()
@@ -125,6 +127,10 @@ class GameSpace:
 		self.size = self.width, self.height = SCREEN_SIZE, SCREEN_SIZE
                 self.green = 0, 255, 0
 		self.connected = 0
+
+		self.opponent = [(MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE, (MAZE_SIZE - 1) * WALL_SIZE * SCALE, "../images/up.png"]		
+		self.humanImage = pygame.image.load(self.opponent[2])
+		self.humanRect = self.humanImage.get_rect()
 
 		# network
 		self.ghostProtocol = None
@@ -207,6 +213,8 @@ class GameSpace:
 			for event in pygame.event.get():
 				if event.type == KEYDOWN and self.game_over == 0:
 					self.ghost.move(event.key)
+					msg = PlayerMessage(self.ghost.rect.centerx, self.ghost.rect.centery, self.ghost.image)
+					self.ghostProtocol.transport.write(pickle.dumps(msg))
 				elif event.type == KEYDOWN and self.game_over == 1:
 					if event.key == K_n:
 						sys.exit()
@@ -231,6 +239,7 @@ class GameSpace:
 
 			self.screen.blit(self.exit_sprite, self.exit_rect)
 			self.screen.blit(self.ghost.image, self.ghost.rect)
+			self.screen.blit(self.humanImage, self.humanRect)
 			
 			if self.game_over == 1:
 				self.screen.blit(self.gameover_sprite, self.gameover_rect)
