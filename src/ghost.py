@@ -1,6 +1,6 @@
 # PATH
 # CSE 30332
-# Gerard Martinez, Marshal Sprigg, and Yucheng Lin
+# Gerard Martinez, Marshall Sprigg, and Yucheng Lin
 # ghost.py
 
 import sys
@@ -21,7 +21,7 @@ WALL_SIZE = 36
 SCALE = 1
 MAZE_SIZE = 20
 START_X = (MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE
-START_Y = (MAZE_SIZE - 1) * WALL_SIZE * SCALE
+START_Y = 0
 SCREEN_SIZE = WALL_SIZE * MAZE_SIZE * SCALE
 GHOST_PORT = 9001
 MAZE_FLAG = 1
@@ -43,7 +43,7 @@ class GhostConn(Protocol):
 		if MAZE_FLAG == 1:
 			# set game maze
 			self.gs.maze = obj
-			self.gs.maze.display()
+
 			# turn flag off
 			MAZE_FLAG = 0
 		else:
@@ -64,33 +64,10 @@ class Wall(pygame.sprite.Sprite):
 		self.image = pygame.image.load("../images/wall.png")
 		self.rect = self.image.get_rect()
 		self.orig_image = self.image
-class Light():
-	def __init__(self, size):
-		# Black Mask
-		self.mask = pygame.surface.Surface(size).convert_alpha()
-		
-		# Light Mask
-		self.light_radius = 50
-		self.light_mask = pygame.surface.Surface((self.light_radius, self.light_radius)).convert_alpha()
-		self.collide = 0
-		self.y = START_Y
-		self.x = START_X
-	
-	# Draw Light	
-	def drawCircle(self):
-		self.mask.fill((0,0,0,250))
-		radius = 50
-		t = 100
-		delta = 10
-		while radius > 25:
-			pygame.draw.circle(self.mask, (0,0,0,t), (self.x, self.y), radius)
-			t -= delta
-			radius -= delta
 
-class Player(pygame.sprite.Sprite):
+class Ghost(pygame.sprite.Sprite):
 	def __init__(self):
 		pygame.sprite.Sprite.__init__(self)
-		self.light = Light((SCREEN_SIZE, SCREEN_SIZE))
 		self.collide = 0	
 		self.img_list = ['../images/up.png', '../images/left.png', '../images/right.png', '../images/down.png'];
 		self.image = pygame.image.load(self.img_list[0])
@@ -100,59 +77,37 @@ class Player(pygame.sprite.Sprite):
 		self.orig_image = self.image
 		self.rect = self.rect.move(self.x, self.y)
 		self.last_position = []
-		self.updateLastPosition()
-		self.velocity = 7
+		self.velocity = 5
 
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
-			self.updateLastPosition()
 			self.rect = self.rect.move(self.velocity, 0)
-			self.light.x = self.rect.centerx
-			self.light.y = self.rect.centery
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
-			self.updateLastPosition()
 			self.rect = self.rect.move(-self.velocity, 0)
-			self.light.x = self.rect.centerx
-			self.light.y = self.rect.centery
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
-			self.updateLastPosition()
 			self.rect = self.rect.move(0, -self.velocity)
-			self.light.x = self.rect.centerx
-			self.light.y = self.rect.centery
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
-			self.updateLastPosition()
 			self.rect = self.rect.move(0, self.velocity)
-			self.light.x = self.rect.centerx
-			self.light.y = self.rect.centery
 
-	def setLastPosition (self):
-		self.rect.centerx = self.last_position[0]
-		self.rect.centery = self.last_position[1]
-
-	def updateLastPosition(self):
-		self.last_position = [self.rect.centerx, self.rect.centery]
-	
 class GameSpace:
 	def __init__(self, mazesize=20):
 		# game characters
-		self.p1 = 'H'
-		self.p2 = 'G'
 		self.exit = 'E'
 
 		# game maze
-		self.maze = Maze(mazesize)
+		self.maze = None
 		self.boot = 1
 		self.size = int()
 
 		# game objects
-		self.player = None
+		self.ghost = None
 		self.clock = None
 
 		# game objects
@@ -175,36 +130,7 @@ class GameSpace:
 		self.ghostProtocol = None
 
 	def setup(self):
-		# generate maze
-		self.maze.generate()
 		size = self.maze.getSize()
-
-		# set character start positions
-		self.maze.setPos(size-1, size/2-1, self.p1)	# human
-		self.maze.setPos(0, size/2-1, self.p2)	   	# ghost
-
-		# set exit (try middle if path, otherwise on edge)
-		if self.maze.getPos(size/2-1, size/2-1) == self.maze.path:
-			self.maze.setPos(size/2-1, size/2-1, self.exit)
-		else:
-			side = randint(0,1)
-			i = 0
-
-			if side == 0:
-				# set on left side
-				while i < size:
-					if self.maze.getPos(i, 0) == self.maze.path:
-						self.maze.setPos(i, 0, self.exit)
-						break
-					i += 1
-			else:
-				# set on right side
-				while i < self.size:
-					if self.maze.getPos(i, size-1) == self.maze.path:
-						self.maze.setPos(i, size-1, self.exit)
-						break
-					i += 1
-
 		self.maze.display()
 
 		# reset data
@@ -237,14 +163,17 @@ class GameSpace:
 
 	def gameloop(self):
 		if self.connected != 1:
-			# DISPLAY WAITING SCREEN HERE YUCHENG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			self.screen.blit(self.wait_screen, self.wait_rect)
 			pygame.display.flip()
 				
 		elif self.boot == 1:
+			global MAZE_FLAG
+			if MAZE_FLAG == 1:
+				return
+
 			self.setup()
 
-			# maze display
+			# generate maze display
 			r = 0
 			while r < self.maze.getSize():
 				c = 0
@@ -261,13 +190,14 @@ class GameSpace:
 
 			# Pygame Objects
 			self.clock = pygame.time.Clock()
-			self.player = Player()
+			self.ghost = Ghost()
 			self.boot = 0
 		
 		else:
 			# Game Loop Logic	   
 			if self.break_flag == 1:
 				self.boot = 1
+				MAZE_FLAG = 1
 				return
 		
 			#frame rate
@@ -276,7 +206,7 @@ class GameSpace:
 			#check user inputs
 			for event in pygame.event.get():
 				if event.type == KEYDOWN and self.game_over == 0:
-					self.player.move(event.key)
+					self.ghost.move(event.key)
 				elif event.type == KEYDOWN and self.game_over == 1:
 					if event.key == K_n:
 						sys.exit()
@@ -291,30 +221,21 @@ class GameSpace:
 			for w in self.walls:
 				self.screen.blit(w.image, w.rect)
 
-				# check for wall collisions
-				if self.player.rect.colliderect(w.rect):
-					self.player.setLastPosition() # set to last non-collision position
-
-				if self.player.rect.colliderect(self.exit_rect):
-					pygame.mixer.music.stop()
-					self.game_over = 1
-					self.player.setLastPosition()
-					pygame.mixer.music.load("../music/win.wav")
-					pygame.mixer.music.play(1, 0.0)
+				#if self.player.rect.colliderect(self.exit_rect):
+				#	pygame.mixer.music.stop()
+				#	self.game_over = 1
+				#	self.player.setLastPosition()
+				#	pygame.mixer.music.load("../music/win.wav")
+				#	pygame.mixer.music.play(1, 0.0)
 					#sys.exit()
 
 			self.screen.blit(self.exit_sprite, self.exit_rect)
-			self.screen.blit(self.player.image, self.player.rect)
+			self.screen.blit(self.ghost.image, self.ghost.rect)
 			
-			if self.game_over == 0:
-				self.player.light.drawCircle()
-				self.screen.blit(self.player.light.mask, (0,0))
-			else:
-				self.player.light.mask.fill((0,0, 0, 190))
-				self.screen.blit(self.player.light.mask, (0,0))
+			if self.game_over == 1:
 				self.screen.blit(self.gameover_sprite, self.gameover_rect)
 
-			self.player.rect.clamp_ip(self.screen_rect)
+			self.ghost.rect.clamp_ip(self.screen_rect)
 			pygame.display.flip()
 
 if __name__ == '__main__':

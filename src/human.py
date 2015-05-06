@@ -1,6 +1,6 @@
 # PATH
 # CSE 30332
-# Gerard Martinez, Marshal Sprigg, and Yucheng Lin
+# Gerard Martinez, Marshall Sprigg, and Yucheng Lin
 # human.py
 
 import sys
