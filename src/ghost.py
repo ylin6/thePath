@@ -1,7 +1,7 @@
 # PATH
 # CSE 30332
 # Gerard Martinez, Marshal Sprigg, and Yucheng Lin
-# human.py
+# ghost.py
 
 import sys
 import os
@@ -14,6 +14,7 @@ from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
+import cPickle as pickle
 
 # GLOBAL VARIABLES
 WALL_SIZE = 36
@@ -23,6 +24,7 @@ START_X = (MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE
 START_Y = (MAZE_SIZE - 1) * WALL_SIZE * SCALE
 SCREEN_SIZE = WALL_SIZE * MAZE_SIZE * SCALE
 GHOST_PORT = 9001
+MAZE_FLAG = 1
 
 # Ghost Connection
 class GhostConn(Protocol):
@@ -32,6 +34,20 @@ class GhostConn(Protocol):
 	def connectionMade(self):
 		print "ghost connected"
 		self.gs.connected = 1
+		self.gs.ghostProtocol = self
+
+	def dataReceived(self, data):
+		obj = pickle.loads(data)
+
+		global MAZE_FLAG
+		if MAZE_FLAG == 1:
+			# set game maze
+			self.gs.maze = obj
+			self.gs.maze.display()
+			# turn flag off
+			MAZE_FLAG = 0
+		else:
+			pass
 
 class GhostFactory(ClientFactory):
 	def __init__(self, gs=None):
@@ -154,6 +170,9 @@ class GameSpace:
 		self.size = self.width, self.height = SCREEN_SIZE, SCREEN_SIZE
                 self.green = 0, 255, 0
 		self.connected = 0
+
+		# network
+		self.ghostProtocol = None
 
 	def setup(self):
 		# generate maze

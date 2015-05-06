@@ -14,6 +14,7 @@ from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import Factory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
+import cPickle as pickle
 
 # GLOBAL VARIABLES
 WALL_SIZE = 36
@@ -32,6 +33,7 @@ class GhostConn(Protocol):
 	def connectionMade(self):
 		print "ghost connected"
 		self.gs.connected = 1
+		self.gs.ghostProtocol = self
 
 class GhostFactory(Factory):
 	def __init__(self, gs=None):
@@ -148,16 +150,25 @@ class GameSpace:
                 self.gameover_rect = self.gameover_rect.move(SCREEN_SIZE/4, SCREEN_SIZE/4)
                 self.bg = pygame.image.load("../images/background.png")
                 self.bg_rect = self.bg.get_rect()
+		self.wait_screen = pygame.image.load("../images/wait_screen.png")
+                self.wait_rect = self.wait_screen.get_rect()
                 #self.bg_rect = self.bg_rect.move(SCREEN_SIZE/2, SCREEN_SIZE/2)
 
 		self.size = self.width, self.height = SCREEN_SIZE, SCREEN_SIZE
                 self.green = 0, 255, 0
 		self.connected = 0
 
+		# network
+		self.ghostProtocol = None
+
 	def setup(self):
 		# generate maze
 		self.maze.generate()
 		size = self.maze.getSize()
+
+		# send data to ghost
+		pd = pickle.dumps(self.maze)
+		self.ghostProtocol.transport.write(pd)
 
 		# set character start positions
 		self.maze.setPos(size-1, size/2-1, self.p1)	# human
@@ -218,7 +229,8 @@ class GameSpace:
 	def gameloop(self):
 		if self.connected != 1:
 			# DISPLAY WAITING SCREEN HERE YUCHENG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			pass
+			self.screen.blit(self.wait_screen, self.wait_rect)
+                        pygame.display.flip()
 
 		elif self.boot == 1:
 			self.setup()
