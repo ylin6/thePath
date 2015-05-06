@@ -188,7 +188,6 @@ class Maze:
 		if self.retracing == True:
 			return
 
-		print "called"
 		# form ub walls if current % previous move vectors form an L shape
 		if (self.currentMove == self.rightVector) and (self.previousMove == self.upVector) and (self.board[self.currentPos[0]+1][self.currentPos[1]] != self.path):
 			self.board[self.currentPos[0]+1][self.currentPos[1]] = self.ubwall
