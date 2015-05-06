@@ -10,6 +10,9 @@ from random import randint
 class Maze:
 	# constructor
 	def __init__(self, size=20):
+		if size < 5 or size > 30:
+			size = 20
+
 		# data
 		self.size = size		# size of 2D board
 		self.retracing = False		# indicates whether or not in retrace state
@@ -40,7 +43,8 @@ class Maze:
 	# get board position
 	def getPos(self, r, c):
 		try:
-			return self.board[r][c]
+			value = self.board[r][c]
+			return value
 		except Exception as e:
 			print str(e)
 			return None
@@ -181,39 +185,40 @@ class Maze:
 
 	# determines if an "unbreakable wall" needs to be placed and places them
 	def wallCheck(self):
-		# form ub walls if current % previous move vectors form an L shape
-		if self.retracing:
+		if self.retracing == True:
 			return
 
-		if self.currentMove == self.rightVector and self.previousMove == self.upVector and self.board[self.currentPos[0]+1][self.currentPos[1]] != self.path:
+		print "called"
+		# form ub walls if current % previous move vectors form an L shape
+		if (self.currentMove == self.rightVector) and (self.previousMove == self.upVector) and (self.board[self.currentPos[0]+1][self.currentPos[1]] != self.path):
 			self.board[self.currentPos[0]+1][self.currentPos[1]] = self.ubwall
 			return
 
-		if self.currentMove == self.rightVector and self.previousMove == self.downVector and self.board[self.currentPos[0]-1][self.currentPos[1]] != self.path:
+		if (self.currentMove == self.rightVector) and (self.previousMove == self.downVector) and (self.board[self.currentPos[0]-1][self.currentPos[1]] != self.path):
                         self.board[self.currentPos[0]-1][self.currentPos[1]] = self.ubwall
                         return
 
-		if self.currentMove == self.leftVector and self.previousMove == self.upVector and self.board[self.currentPos[0]+1][self.currentPos[1]] != self.path:
+		if (self.currentMove == self.leftVector) and (self.previousMove == self.upVector) and (self.board[self.currentPos[0]+1][self.currentPos[1]] != self.path):
                         self.board[self.currentPos[0]+1][self.currentPos[1]] = self.ubwall
                         return
 
-		if self.currentMove == self.leftVector and self.previousMove == self.downVector and self.board[self.currentPos[0]-1][self.currentPos[1]] != self.path:
+		if (self.currentMove == self.leftVector) and (self.previousMove == self.downVector) and (self.board[self.currentPos[0]-1][self.currentPos[1]] != self.path):
                         self.board[self.currentPos[0]-1][self.currentPos[1]] = self.ubwall
                         return
 
-		if self.currentMove == self.upVector and self.previousMove == self.rightVector and self.board[self.currentPos[0]][self.currentPos[1]-1] != self.path:
+		if (self.currentMove == self.upVector) and (self.previousMove == self.rightVector) and (self.board[self.currentPos[0]][self.currentPos[1]-1] != self.path):
                         self.board[self.currentPos[0]][self.currentPos[1]-1] = self.ubwall
                         return
 
-		if self.currentMove == self.upVector and self.previousMove == self.leftVector and self.board[self.currentPos[0]][self.currentPos[1]+1] != self.path:
+		if (self.currentMove == self.upVector) and (self.previousMove == self.leftVector) and (self.board[self.currentPos[0]][self.currentPos[1]+1] != self.path):
                         self.board[self.currentPos[0]][self.currentPos[1]+1] = self.ubwall
                         return
 
-		if self.currentMove == self.downVector and self.previousMove == self.leftVector and self.board[self.currentPos[0]][self.currentPos[1]+1] != self.path:
+		if (self.currentMove == self.downVector) and (self.previousMove == self.leftVector) and (self.board[self.currentPos[0]][self.currentPos[1]+1] != self.path):
                         self.board[self.currentPos[0]][self.currentPos[1]+1] = self.ubwall
                         return
 
-		if self.currentMove == self.downVector and self.previousMove == self.rightVector and self.board[self.currentPos[0]][self.currentPos[1]-1] != self.path:
+		if (self.currentMove == self.downVector) and (self.previousMove == self.rightVector) and (self.board[self.currentPos[0]][self.currentPos[1]-1] != self.path):
                         self.board[self.currentPos[0]][self.currentPos[1]-1] = self.ubwall
                         return
 		return
@@ -366,7 +371,7 @@ class Maze:
 		
 		# recursive base case
 		if self.baseCheck():
-			return self.board
+			return True
 
 		# generate path
 		self.fillPossibleDir()
