@@ -73,6 +73,7 @@ class Ghost(pygame.sprite.Sprite):
 		self.collide = 0	
 		self.img_list = ['../images/ghost_up.png', '../images/ghost_left.png', '../images/ghost_right.png', '../images/ghost_down.png'];
 		self.image = pygame.image.load(self.img_list[3])
+		self.imagePath = self.img_list[3]
 		self.x = START_X
 		self.y = START_Y
 		self.rect = self.image.get_rect()
@@ -84,18 +85,22 @@ class Ghost(pygame.sprite.Sprite):
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
+			self.imagePath = self.img_list[2]
 			self.rect = self.rect.move(self.velocity, 0)
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
+			self.imagePath = self.img_list[1]
 			self.rect = self.rect.move(-self.velocity, 0)
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
+			self.imagePath = self.img_list[0]
 			self.rect = self.rect.move(0, -self.velocity)
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
+			self.imagePath = self.img_list[3]
 			self.rect = self.rect.move(0, self.velocity)
 
 class GameSpace:
@@ -152,7 +157,7 @@ class GameSpace:
 	def main(self):
 		# establish connection with ghost
 		ghostFactory = GhostFactory(self)
-		reactor.connectTCP("127.0.0.1", GHOST_PORT, ghostFactory)
+		reactor.connectTCP("10.17.161.16", GHOST_PORT, ghostFactory)
 
 		# Initialize screen window
 		pygame.display.set_caption("PATH")
@@ -213,7 +218,7 @@ class GameSpace:
 			for event in pygame.event.get():
 				if event.type == KEYDOWN and self.game_over == 0:
 					self.ghost.move(event.key)
-					msg = PlayerMessage(self.ghost.rect.centerx, self.ghost.rect.centery, self.ghost.image)
+					msg = PlayerMessage(self.ghost.rect.centerx, self.ghost.rect.centery, self.ghost.imagePath)
 					self.ghostProtocol.transport.write(pickle.dumps(msg))
 				elif event.type == KEYDOWN and self.game_over == 1:
 					if event.key == K_n:
