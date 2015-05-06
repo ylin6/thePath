@@ -148,7 +148,8 @@ class GameSpace:
                 self.gameover_rect = self.gameover_rect.move(SCREEN_SIZE/4, SCREEN_SIZE/4)
                 self.bg = pygame.image.load("../images/background.png")
                 self.bg_rect = self.bg.get_rect()
-                #self.bg_rect = self.bg_rect.move(SCREEN_SIZE/2, SCREEN_SIZE/2)
+		self.wait_screen = pygame.image.load("../images/wait_screen.png")
+                self.wait_rect = self.wait_screen.get_rect()
 
 		self.size = self.width, self.height = SCREEN_SIZE, SCREEN_SIZE
                 self.green = 0, 255, 0
@@ -218,8 +219,9 @@ class GameSpace:
 	def gameloop(self):
 		if self.connected != 1:
 			# DISPLAY WAITING SCREEN HERE YUCHENG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-			pass
-
+			self.screen.blit(self.wait_screen, self.wait_rect)
+			pygame.display.flip()
+				
 		elif self.boot == 1:
 			self.setup()
 
