@@ -11,7 +11,7 @@ from maze import Maze
 from pygame.locals import *
 from random import randint
 from twisted.internet.protocol import Protocol
-from twisted.internet.protocol import Factory
+from twisted.internet.protocol import ClientFactory
 from twisted.internet import reactor
 from twisted.internet.task import LoopingCall
 
@@ -33,7 +33,7 @@ class GhostConn(Protocol):
 		print "ghost connected"
 		self.gs.connected = 1
 
-class GhostFactory(Factory):
+class GhostFactory(ClientFactory):
 	def __init__(self, gs=None):
 		self.gs = gs
 
@@ -200,7 +200,7 @@ class GameSpace:
 	def main(self):
 		# establish connection with ghost
 		ghostFactory = GhostFactory(self)
-		reactor.listenTCP(GHOST_PORT, ghostFactory)
+		reactor.connectTCP("127.0.0.1", GHOST_PORT, ghostFactory)
 
 		# Initialize screen window
 		pygame.display.set_caption("PATH")
