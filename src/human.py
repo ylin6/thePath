@@ -8,6 +8,7 @@ import os
 import math
 import pygame
 from maze import Maze
+from pmessage import PlayerMessage
 from pygame.locals import *
 from random import randint
 from twisted.internet.protocol import Protocol
@@ -34,6 +35,11 @@ class GhostConn(Protocol):
 		print "ghost connected"
 		self.gs.connected = 1
 		self.gs.ghostProtocol = self
+
+	def dataReceived(self, data):
+		obj = pickle.loads(data)
+
+		self.gs.opponent = [obj.xPos, obj.yPos, obj.image]
 
 class GhostFactory(Factory):
 	def __init__(self, gs=None):
@@ -158,6 +164,10 @@ class GameSpace:
                 self.green = 0, 255, 0
 		self.connected = 0
 
+		self.opponent = [(MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE, 0, "../images/ghost_down.png"]
+		self.ghostImage = pygame.image.load(self.opponent[2])
+		self.ghostRect = self.ghostImage.get_rect()		
+
 		# network
 		self.ghostProtocol = None
 
@@ -268,6 +278,8 @@ class GameSpace:
 			for event in pygame.event.get():
 				if event.type == KEYDOWN and self.game_over == 0:
 					self.player.move(event.key)
+					msg = PlayerMessage(self.player.rect.centerx, self.player.rect.centery, self.player.image)
+					self.ghostProtocol.transport.write(pickle.dumps(msg))
 				elif event.type == KEYDOWN and self.game_over == 1:
 					if event.key == K_n:
 						sys.exit()
@@ -296,7 +308,8 @@ class GameSpace:
 
 			self.screen.blit(self.exit_sprite, self.exit_rect)
 			self.screen.blit(self.player.image, self.player.rect)
-			
+			self.screen.blit(self.ghostImage, self.ghostRect)
+
 			if self.game_over == 0:
 				self.player.light.drawCircle()
 				self.screen.blit(self.player.light.mask, (0,0))
