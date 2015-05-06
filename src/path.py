@@ -34,7 +34,6 @@ class Light():
 		self.collide = 0
 		self.y = START_Y
 		self.x = START_X
-	
 	# Draw Light	
 	def drawCircle(self):
 		self.mask.fill((0,0,0,250))
@@ -64,33 +63,33 @@ class Player(pygame.sprite.Sprite):
 		self.rect = self.rect.move(self.x, self.y)
 		self.last_position = []
 		self.updateLastPosition()
-
+		self.velocity = 7
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
 			self.updateLastPosition()
-			self.rect = self.rect.move(5, 0)
+			self.rect = self.rect.move(self.velocity, 0)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
 			self.updateLastPosition()
-			self.rect = self.rect.move(-5, 0)
+			self.rect = self.rect.move(-self.velocity, 0)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
 			self.updateLastPosition()
-			self.rect = self.rect.move(0, -5)
+			self.rect = self.rect.move(0, -self.velocity)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
 			self.updateLastPosition()
-			self.rect = self.rect.move(0, 5)
+			self.rect = self.rect.move(0, self.velocity)
 			self.light.x = self.rect.centerx
 			self.light.y = self.rect.centery
 
@@ -151,7 +150,7 @@ class GameSpace:
 
                 self.gameover_sprite = pygame.image.load("../images/gameover.png")
                 self.gameover_rect = self.gameover_sprite.get_rect()
-
+		self.gameover_rect = self.gameover_rect.move(SCREEN_SIZE/4, SCREEN_SIZE/4)
                 self.bg = pygame.image.load("../images/background.png")
                 self.bg_rect = self.bg.get_rect()
                 #self.bg_rect = self.bg_rect.move(SCREEN_SIZE/2, SCREEN_SIZE/2)
@@ -160,7 +159,8 @@ class GameSpace:
                 self.walls = []
 
 		# gameover variable
-		self.game_over = 0 
+		self.game_over = 0
+		self.break_flag = 0 
 
 	def main(self):
 		# Initiation
@@ -198,14 +198,23 @@ class GameSpace:
 			# Pygame Objects
 			self.clock = pygame.time.Clock()
 			self.player = Player()
+
+			
 			# Game Loop
 			while 1:
+				if self.break_flag == 1:
+					break
 				#frame rate
 				self.clock.tick(60)
 				#handle user inputs
 				for event in pygame.event.get():
 					if event.type == KEYDOWN and self.game_over == 0:
 						self.player.move(event.key)
+					elif event.type == KEYDOWN and self.game_over == 1:
+						if event.key == K_n:
+							sys.exit()
+						elif event.key == K_y:
+							self.break_flag = 1
 					elif event.type == pygame.QUIT:
 						sys.exit()			
 
@@ -234,8 +243,10 @@ class GameSpace:
 	                        	self.player.light.drawCircle()
 					self.screen.blit(self.player.light.mask, (0,0))
 				else:
+					self.player.light.mask.fill((0,0, 0, 190))
+					self.screen.blit(self.player.light.mask, (0,0))
 					self.screen.blit(self.gameover_sprite, self.gameover_rect)
-					break
+					
 				
 				self.player.rect.clamp_ip(self.screen_rect)
 				pygame.display.flip()
