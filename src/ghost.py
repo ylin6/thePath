@@ -42,14 +42,13 @@ class GhostConn(Protocol):
 
 		global MAZE_FLAG
 		if MAZE_FLAG == 1:
-			# set game maze
+		# set game maze
 			self.gs.maze = obj
 
-			# turn flag off
+		# turn flag off
 			MAZE_FLAG = 0
 		else:
 			self.gs.opponent = [obj.xPos, obj.yPos, obj.image]
-			print self.gs.opponent
 
 class GhostFactory(ClientFactory):
 	def __init__(self, gs=None):
@@ -119,8 +118,8 @@ class GameSpace:
 
 		# game objects
 		pygame.init()
-                self.exit_sprite = pygame.image.load("../images/exit.png")
-                self.exit_rect = self.exit_sprite.get_rect()
+                #self.exit_sprite = pygame.image.load("../images/exit.png")
+                #self.exit_rect = self.exit_sprite.get_rect()
                 self.gameover_sprite = pygame.image.load("../images/gameover.png")
                 self.gameover_rect = self.gameover_sprite.get_rect()
                 self.gameover_rect = self.gameover_rect.move(SCREEN_SIZE/4, SCREEN_SIZE/4)
@@ -136,7 +135,8 @@ class GameSpace:
 		self.opponent = [(MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE, (MAZE_SIZE - 1) * WALL_SIZE * SCALE, "../images/up.png"]		
 		self.humanImage = pygame.image.load(self.opponent[2])
 		self.humanRect = self.humanImage.get_rect()
-
+		self.humanRect.centerx = self.opponent[0] + 15
+		self.humanRect.centery = self.opponent[1] + 15
 		# network
 		self.ghostProtocol = None
 
@@ -194,8 +194,8 @@ class GameSpace:
 						height = rockWall.rect.size
 						rockWall.rect = rockWall.rect.move(height[0] * c, height[0] * r)
 						self.walls.append(rockWall)
-					elif self.maze.getPos(r,c) == self.exit:
-						self.exit_rect = self.exit_rect.move(WALL_SIZE * c, WALL_SIZE * r)
+					#elif self.maze.getPos(r,c) == self.exit:
+					#	self.exit_rect = self.exit_rect.move_ip(WALL_SIZE * c, WALL_SIZE * r)
 					c += 1
 				r += 1
 
@@ -227,7 +227,7 @@ class GameSpace:
 						self.break_flag = 1
 				elif event.type == pygame.QUIT:
 					os._exit(0)
-
+			
 			#flush to screen and swap buffers
 			self.screen.fill(self.green)
 			self.screen.blit(self.bg, self.bg_rect)
@@ -242,8 +242,11 @@ class GameSpace:
 				#	pygame.mixer.music.play(1, 0.0)
 					#sys.exit()
 
-			self.screen.blit(self.exit_sprite, self.exit_rect)
+			#self.screen.blit(self.exit_sprite, self.exit_rect)
 			self.screen.blit(self.ghost.image, self.ghost.rect)
+			self.humanRect.centerx = self.opponent[0]
+			self.humanRect.centery = self.opponent[1]
+			self.humanImage = pygame.image.load(self.opponent[2])
 			self.screen.blit(self.humanImage, self.humanRect)
 			
 			if self.game_over == 1:
