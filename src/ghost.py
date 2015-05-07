@@ -147,6 +147,7 @@ class GameSpace:
 		# reset data
 		self.walls = []
 		self.game_over = 0
+		self.lose = 0
 		self.break_flag = 0
 
 		# music 
@@ -247,11 +248,12 @@ class GameSpace:
 			self.humanRect.centerx = self.opponent[0]
 			self.humanRect.centery = self.opponent[1]
 			if self.humanRect.colliderect(self.ghost.rect):
-				print "collision"
+				self.lose = 1
+				self.game_over = 1
 			self.humanImage = pygame.image.load(self.opponent[2])
 			self.screen.blit(self.humanImage, self.humanRect)
 			
-			if self.game_over == 1:
+			if self.game_over == 1 and self.lose == 1:
 				self.screen.blit(self.gameover_sprite, self.gameover_rect)
 
 			self.ghost.rect.clamp_ip(self.screen_rect)
