@@ -33,7 +33,7 @@ class GhostConn(Protocol):
 		self.gs = gs
 
 	def connectionMade(self):
-		print "ghost connected"
+		#print "ghost connected"
 		self.gs.connected = 1
 		self.gs.ghostProtocol = self
 
@@ -142,7 +142,7 @@ class GameSpace:
 
 	def setup(self):
 		size = self.maze.getSize()
-		self.maze.display()
+		#self.maze.display()
 
 		# reset data
 		self.walls = []

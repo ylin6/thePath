@@ -32,7 +32,7 @@ class GhostConn(Protocol):
 		self.gs = gs
 
 	def connectionMade(self):
-		print "ghost connected"
+		#print "ghost connected"
 		self.gs.connected = 1
 		self.gs.ghostProtocol = self
 
@@ -216,7 +216,7 @@ class GameSpace:
 						break
 					i += 1
 
-		self.maze.display()
+		#self.maze.display()
 
 		# reset data
 		self.walls = []
@@ -249,7 +249,6 @@ class GameSpace:
 
 	def gameloop(self):
 		if self.connected != 1:
-			# DISPLAY WAITING SCREEN HERE YUCHENG!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 			self.screen.blit(self.wait_screen, self.wait_rect)
                         pygame.display.flip()
 
