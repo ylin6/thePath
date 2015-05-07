@@ -86,6 +86,7 @@ class Player(pygame.sprite.Sprite):
 		self.collide = 0	
 		self.img_list = ['../images/up.png', '../images/left.png', '../images/right.png', '../images/down.png'];
 		self.image = pygame.image.load(self.img_list[0])
+		self.imagePath = self.img_list[0]
 		self.x = START_X
 		self.y = START_Y
 		self.rect = self.image.get_rect()
@@ -98,6 +99,7 @@ class Player(pygame.sprite.Sprite):
 	def move(self, event):
 		if (event == K_RIGHT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[2])
+			self.imagePath = self.img_list[2]
 			self.updateLastPosition()
 			self.rect = self.rect.move(self.velocity, 0)
 			self.light.x = self.rect.centerx
@@ -105,6 +107,7 @@ class Player(pygame.sprite.Sprite):
 
 		elif (event == K_LEFT and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[1])
+			self.imagePath = self.img_list[1]
 			self.updateLastPosition()
 			self.rect = self.rect.move(-self.velocity, 0)
 			self.light.x = self.rect.centerx
@@ -112,6 +115,7 @@ class Player(pygame.sprite.Sprite):
 
 		elif (event == K_UP and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[0])
+			self.imagePath = self.img_list[0]
 			self.updateLastPosition()
 			self.rect = self.rect.move(0, -self.velocity)
 			self.light.x = self.rect.centerx
@@ -119,6 +123,7 @@ class Player(pygame.sprite.Sprite):
 
 		elif (event == K_DOWN and self.collide == 0):
 			self.image = pygame.image.load(self.img_list[3])
+			self.imagePath = self.img_list[3]
 			self.updateLastPosition()
 			self.rect = self.rect.move(0, self.velocity)
 			self.light.x = self.rect.centerx
@@ -278,7 +283,7 @@ class GameSpace:
 			for event in pygame.event.get():
 				if event.type == KEYDOWN and self.game_over == 0:
 					self.player.move(event.key)
-					msg = PlayerMessage(self.player.rect.centerx, self.player.rect.centery, self.player.image)
+					msg = PlayerMessage(self.player.rect.centerx, self.player.rect.centery, self.player.imagePath)
 					self.ghostProtocol.transport.write(pickle.dumps(msg))
 				elif event.type == KEYDOWN and self.game_over == 1:
 					if event.key == K_n:
