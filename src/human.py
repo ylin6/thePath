@@ -159,6 +159,9 @@ class GameSpace:
                 self.gameover_sprite = pygame.image.load("../images/gameover.png")
                 self.gameover_rect = self.gameover_sprite.get_rect()
                 self.gameover_rect = self.gameover_rect.move(SCREEN_SIZE/4, SCREEN_SIZE/4)
+		self.gameoverl_sprite = pygame.image.load("../images/gameover_l.png")
+                self.gameoverl_rect = self.gameoverl_sprite.get_rect()
+                self.gameoverl_rect = self.gameoverl_rect.move(SCREEN_SIZE/4, SCREEN_SIZE/4)
                 self.bg = pygame.image.load("../images/background.png")
                 self.bg_rect = self.bg.get_rect()
 		self.wait_screen = pygame.image.load("../images/wait_screen.png")
@@ -172,7 +175,9 @@ class GameSpace:
 		self.opponent = [(MAZE_SIZE/2 - 1) * WALL_SIZE * SCALE, 0, "../images/ghost_down.png"]
 		self.ghostImage = pygame.image.load(self.opponent[2])
 		self.ghostRect = self.ghostImage.get_rect()		
-
+		self.ghostRect.centerx = self.opponent[0]
+		self.ghostRect.centery = self.opponent[1]
+		
 		# network
 		self.ghostProtocol = None
 
@@ -216,6 +221,7 @@ class GameSpace:
 		# reset data
 		self.walls = []
 		self.game_over = 0
+		self.lose = 0
 		self.break_flag = 0
 
 		# music 
@@ -313,15 +319,24 @@ class GameSpace:
 
 			self.screen.blit(self.exit_sprite, self.exit_rect)
 			self.screen.blit(self.player.image, self.player.rect)
+			self.ghostImage = pygame.image.load(self.opponent[2])
+			self.ghostRect.centerx = self.opponent[0]
+			self.ghostRect.centery = self.opponent[1]
 			self.screen.blit(self.ghostImage, self.ghostRect)
-
+			if self.ghostRect.colliderect(self.player.rect):
+				self.game_over = 1
+				self.lose = 1
 			if self.game_over == 0:
 				self.player.light.drawCircle()
 				self.screen.blit(self.player.light.mask, (0,0))
-			else:
+			elif self.game_over == 1 and self.lose == 0:
 				self.player.light.mask.fill((0,0, 0, 190))
 				self.screen.blit(self.player.light.mask, (0,0))
 				self.screen.blit(self.gameover_sprite, self.gameover_rect)
+			elif self.game_over == 1 and self.lose == 1:
+				self.player.light.mask.fill((0,0, 0, 190))
+                                self.screen.blit(self.player.light.mask, (0,0))
+                                self.screen.blit(self.gameoverl_sprite, self.gameoverl_rect)
 
 			self.player.rect.clamp_ip(self.screen_rect)
 			pygame.display.flip()

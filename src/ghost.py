@@ -157,7 +157,7 @@ class GameSpace:
 	def main(self):
 		# establish connection with ghost
 		ghostFactory = GhostFactory(self)
-		reactor.connectTCP("10.17.161.16", GHOST_PORT, ghostFactory)
+		reactor.connectTCP("localhost", GHOST_PORT, ghostFactory)
 
 		# Initialize screen window
 		pygame.display.set_caption("PATH")
@@ -246,6 +246,8 @@ class GameSpace:
 			self.screen.blit(self.ghost.image, self.ghost.rect)
 			self.humanRect.centerx = self.opponent[0]
 			self.humanRect.centery = self.opponent[1]
+			if self.humanRect.colliderect(self.ghost.rect):
+				print "collision"
 			self.humanImage = pygame.image.load(self.opponent[2])
 			self.screen.blit(self.humanImage, self.humanRect)
 			
