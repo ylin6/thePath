@@ -280,7 +280,8 @@ class GameSpace:
 			# Game Loop Logic	   
 			if self.break_flag == 1:
 				self.boot = 1
-				return
+				# temporary
+				os._exit(0)
 		
 			#frame rate
 			self.clock.tick(60)
